@@ -2,15 +2,19 @@ package formatter
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"os"
-	"sort"
 )
 
 type patient struct {
-	Name  string `json:"name"`
-	Age   uint   `json:"age"`
-	Email string `json:"email"`
+	Name  string
+	Age   uint
+	Email string
+}
+
+type patients struct {
+	List []patient `xml:"Patient"`
 }
 
 func Do(patients string, result string) error {
@@ -19,11 +23,6 @@ func Do(patients string, result string) error {
 	if err != nil {
 		return fmt.Errorf("%s", err)
 	}
-
-	// Сортируем
-	sort.Slice(src, func(i, j int) bool {
-		return src[i].Age < src[j].Age
-	})
 
 	// Записываем данные
 	err = encode(src, result)
@@ -70,8 +69,15 @@ func encode(res []patient, result string) error {
 	// отложенное закрытие
 	defer f.Close()
 
-	// Записываем данные json
-	err = json.NewEncoder(f).Encode(res)
+	// Записываем данные xml
+	p := patients{}
+	p.List = append(p.List, res...)
+
+	f.WriteString(xml.Header)
+
+	enc := xml.NewEncoder(f)
+	enc.Indent("", " ")
+	err = enc.Encode(p)
 	if err != nil {
 		return fmt.Errorf("ошибка записи в файл %s: %s", result, err)
 	}
