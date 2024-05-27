@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
 )
 
 type patient struct {
@@ -18,6 +19,11 @@ func Do(patients string, result string) error {
 	if err != nil {
 		return fmt.Errorf("%s", err)
 	}
+
+	// Сортируем
+	sort.Slice(src, func(i, j int) bool {
+		return src[i].Age < src[j].Age
+	})
 
 	// Записываем данные
 	err = encode(src, result)
